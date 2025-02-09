@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Quiz Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="description" content="Bu sayt orqali oz bilimingizni tekshirn oling">
+    <meta name="author" content="Sobirjonov Sardorbek">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { background: #1e1e2e; color: white; font-family: sans-serif; text-align: center; }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center h-screen">
+    <h1 class="text-3xl font-bold mb-4">🧠 3D Quiz Game</h1>
+    <div id="question" class="text-xl font-semibold p-6 bg-gray-800 rounded-lg shadow-lg"></div>
+    <div id="options" class="grid grid-cols-2 gap-4 mt-4"></div>
+    <p class="mt-4 text-lg">Ball: <span id="score">0</span></p>
+    <button onclick="restartGame()" class="mt-6 px-4 py-2 bg-blue-500 text-white rounded-lg shadow-lg">🔄 Qayta O'ynash</button>
+    
+    <script>
+        const questions = [
+            { q: "Dunyodagi eng katta okean qaysi?", options: ["Atlantika", "Tinch okeani", "Hind okeani", "Shimoliy muz okeani"], correct: 1 },
+            { q: "Pi ning dastlabki 3 raqami?", options: ["3.12", "3.14", "3.15", "3.16"], correct: 1 },
+            { q: "Eng katta sayyora qaysi?", options: ["Mars", "Yupiter", "Yer", "Saturn"], correct: 1 },
+            { q: "3 + 5 nima?", options: ["7", "8", "9", "10"], correct: 1 },
+            { q: "9 * 3 nima?", options: ["27", "18", "21", "24"], correct: 0 },
+            { q: "Dunyo okeanlarida qancha sho'r suv bor?", options: ["75%", "85%", "95%", "98%"], "correct": 3 },
+            { q: "Qaysi davlatda hayvonlarning shaharni egallashi bo'lgan?", options: ["Avstraliya", "Germaniya", "Islandiya", "Yaponiya"], "correct": 0 },
+            { q: "Yerning yuzasida eng ko'p tarkibiy modda qaysi?", options: ["Vodorod", "Kislorod", "Azot", "Uglerod"], "correct": 1 },
+            { q: "Dunyodagi eng katta cho'l qaysi?", options: ["Sahroi Kabir", "Antarktida", "Gobi", "Sahara"], "correct": 1 },
+            { q: "Qaysi davlatning nomi oltin bilan bog'liq?", options: ["Argentina", "Armaniston", "Afg'oniston", "Albaniya"], "correct": 0 },
+            { q: "Eng ko'p odam yashaydigan shahar qaysi?", options: ["Nyu-York", "Pekin", "Tokio", "Mumbay"], "correct": 2 },
+            { q: "Qaysi dizayner 20-asrning eng mashhur modachisi hisoblanadi?", options: ["Coco Chanel", "Gianni Versace", "Ralph Lauren", "Giorgio Armani"], correct: 0 },
+            { q: "Qaysi film 1994 yilda 'Eng yaxshi film' uchun Oskar mukofotini qo'lga kiritdi?", options: ["The Shawshank Redemption", "Forrest Gump", "Pulp Fiction", "The Lion King"], correct: 1 },
+            { q: "Qaysi mamlakatda Angkor Wat ibodatxonasi joylashgan?", options: ["Tailand", "Vyetnam", "Kambodja", "Laos"], correct: 2 },
+            { q: "Harri Potter seriyasining muallifi kim?", options: ["J.K. Rowling", "J.R.R. Tolkien", "George R.R. Martin", "C.S. Lewis"], correct: 0 },
+            { q: "Qaysi shaxsiy rekord ushlagan marafonchining ismi Eliud Kipchoge?", options: ["Efiopiya", "Keniya", "Uganda", "Tanzaniya"], correct: 1 },
+            { q: "Qaysi kompaniya iPhone smartfonini ishlab chiqargan?", options: ["Google", "Samsung", "Apple", "Microsoft"], correct: 2 },
+            { q: "Qaysi stol o'yini 1930-yillarda icod qilingan va hozir ham mashhur?", options: ["Monopoliya", "Shaxmat", "Checkers", "Scrabble"], correct: 0 },
+            { q: "Beatles guruhi qaysi yilda tashkil topgan?", options: ["1955", "1960", "1965", "1970"], correct: 1 },
+            { q: "Qaysi davlatda eng ko'p orol bor?", options: ["Indoneziya", "Malayziya", "Filippin", "Yaponiya"], "correct": 0 },
+            { q: "Qaysi hayvon umrida bir marta uxlaydi?", options: ["Tuyoq", "Kaplumbağa", "Ayiq", "Eri"], "correct": 1 },
+            { q: "Eng katta geologik shakl qaysi?", options: ["Himolay tog'lari", "Mariana chuqurligi", "Amazon o'rmonlari", "Sahara cho'li"], "correct": 0 },
+            { q: "Qaysi mamlakat 7 ta vaqt zonasiga ega?", options: ["AQSh", "Kanada", "Rossiya", "Braziliya"], "correct": 2 },
+            { q: "Eng katta faqat sho'r suv bo'lgan ko'l qaysi?", options: ["O'rta er dengizi", "Kaspiy dengizi", "Arab dengizi", "Qizil dengiz"], "correct": 1 },
+            { q: "Eng ko'p yagona tilda gaplashadigan davlat qaysi?", options: ["Xitoy", "Hindiston", "AQSh", "Braziliya"], "correct": 0 },
+            { q: "Qaysi hayvon uchib yuradi?", options: ["Kechkiy", "Pingvin", "Sichqon", "Maymun"], "correct": 0 },
+            { q: "Eng kichik mamlakat qaysi?", options: ["Vatikan", "Monako", "Nauru", "San-Marino"], "correct": 0 },
+            { q: "Quyosh tizimida nechta sayyora bor?", options: ["7", "8", "9", "10"], "correct": 1 },
+            { q: "Eng tez yuguradigan hayvon qaysi?", options: ["Sher", "Yo'lbars", "Gepard", "Bo'ri"], "correct": 2 }
+        ];
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        let currentQuestion = 0;
+        let score = 0;
+        let gameOver = false;
+        shuffle(questions);
+
+        function loadQuestion() {
+            if (gameOver) return;
+            if (currentQuestion >= questions.length) {
+                document.getElementById('question').innerHTML = `🎉 O‘yin tugadi! Siz ${score} ball topladingiz.`;
+                document.getElementById('options').innerHTML = '';
+                return;
+            }
+            
+            let q = questions[currentQuestion];
+            document.getElementById('question').textContent = q.q;
+            document.getElementById('options').innerHTML = '';
+            q.options.forEach((opt, index) => {
+                let btn = document.createElement("button");
+                btn.textContent = opt;
+                btn.className = "px-4 py-2 bg-gray-700 rounded-lg hover:bg-green-500 transition";
+                btn.onclick = () => checkAnswer(index);
+                document.getElementById('options').appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected) {
+            let q = questions[currentQuestion];
+            if (selected === q.correct) {
+                score += 5;
+                document.getElementById('question').innerHTML = `✅ To‘g‘ri javob!`;
+                setTimeout(() => {
+                    currentQuestion++;
+                    document.getElementById('score').textContent = score;
+                    loadQuestion();
+                }, 1000);
+            } else {
+                gameOver = true;
+                document.getElementById('question').innerHTML = `❌ Noto‘g‘ri javob! To‘g‘ri javob: ${q.options[q.correct]}. Siz ${score} ball topladingiz.`;
+                document.getElementById('options').innerHTML = '';
+            }
+        }
+
+        function restartGame() {
+            currentQuestion = 0;
+            score = 0;
+            gameOver = false;
+            shuffle(questions);
+            document.getElementById('score').textContent = score;
+            loadQuestion();
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
